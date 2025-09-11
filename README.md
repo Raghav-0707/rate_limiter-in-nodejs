@@ -26,7 +26,7 @@
    docker run --name redis-rate-limiter -p 6379:6379 redis
    ```
 3. **Configure environment:**
-   Edit `.env` if needed (default Redis: 127.0.0.1:6379)
+   Edit `.env` if needed
 4. **Run server:**
    ```bash
    npm start
