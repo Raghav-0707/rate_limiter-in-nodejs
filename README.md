@@ -73,14 +73,6 @@ You should see `429 Too Many Requests` after the allowed burst/rate.
 
 ---
 
-## Extend
-
-- **Per-user limits:** Use `req.user.id` in the middleware for user-based throttling.
-- **Metrics & dashboards:** Integrate with Prometheus, Grafana, or custom dashboards.
-- **Custom strategies:** Add new algorithms easily in `src/limiter/algorithms/`.
-
----
-
 ## About
 
 This project demonstrates all major production-grade rate limiting algorithms for distributed Node.js APIs using Redis. Each algorithm is implemented as a plug-and-play Express middleware for easy experimentation and benchmarking.
