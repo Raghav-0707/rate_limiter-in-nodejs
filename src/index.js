@@ -4,6 +4,8 @@ const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const cors = require("cors");
+app.use(cors());
 
 // Trust proxy for correct IP detection (especially behind reverse proxies)
 app.set("trust proxy", true);
