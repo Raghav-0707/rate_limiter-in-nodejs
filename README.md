@@ -26,7 +26,7 @@
    docker run --name redis-rate-limiter -p 6379:6379 redis
    ```
 3. **Configure environment:**
-   Edit `.env` if needed (default Redis: 127.0.0.1:6379)
+   Edit `.env` if needed
 4. **Run server:**
    ```bash
    npm start
@@ -70,14 +70,6 @@ for i in {1..10}; do curl -s http://localhost:3000/api/sliding-counter; echo "";
 ```
 
 You should see `429 Too Many Requests` after the allowed burst/rate.
-
----
-
-## Extend
-
-- **Per-user limits:** Use `req.user.id` in the middleware for user-based throttling.
-- **Metrics & dashboards:** Integrate with Prometheus, Grafana, or custom dashboards.
-- **Custom strategies:** Add new algorithms easily in `src/limiter/algorithms/`.
 
 ---
 
