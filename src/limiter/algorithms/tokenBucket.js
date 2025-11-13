@@ -1,22 +1,25 @@
 const redis = require("../../config/redisClient");
+const fs = require("fs");
+const path = require("path");
+
+// load Lua script once at startup
+const luaPath = path.join(__dirname, "tokenBucket.lua");
+const tokenBucketLua = fs.readFileSync(luaPath, "utf8");
+
 async function consumeToken(key, rate, capacity) {
   const now = Date.now();
-  const data = await redis.hgetall(key);
-  let tokens = parseFloat(data.tokens) || capacity;
-  let lastRefill = parseInt(data.lastRefill) || now;
-  const delta = (now - lastRefill) / 1000;
-  tokens = Math.min(capacity, tokens + delta * rate);
-  lastRefill = now;
-  let allowed = false;
-  if (tokens >= 1) {
-    tokens -= 1;
-    allowed = true;
-  }
-  await redis.hset(key, {
-    tokens: tokens.toFixed(4),
-    lastRefill,
-  });
-  await redis.expire(key, 60);
-  return allowed;
+  // For ioredis the signature is: eval(script, numKeys, key1, key2..., arg1, arg2...)
+  const allowed = await redis.eval(
+    tokenBucketLua,
+    1,
+    key,
+    now,
+    rate,
+    capacity,
+    1, // consume 1 token
+    60 // ttl seconds
+  );
+  return allowed === 1;
 }
+
 module.exports = { consumeToken };

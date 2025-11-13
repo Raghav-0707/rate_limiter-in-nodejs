@@ -1,23 +1,24 @@
 const redis = require("../../config/redisClient");
+const fs = require("fs");
+const path = require("path");
+
+// load Lua script once at startup
+const luaPath = path.join(__dirname, "leakyBucket.lua");
+const leakyBucketLua = fs.readFileSync(luaPath, "utf8");
+
 async function leakyBucket(key, rate, capacity) {
   const now = Date.now();
-  const data = await redis.hgetall(key);
-  let water = parseFloat(data.water) || 0;
-  let lastLeak = parseInt(data.lastLeak) || now;
-  const delta = (now - lastLeak) / 1000;
-  const leaked = delta * rate;
-  water = Math.max(0, water - leaked);
-  lastLeak = now;
-  let allowed = false;
-  if (water < capacity) {
-    water += 1;
-    allowed = true;
-  }
-  await redis.hset(key, {
-    water: water.toFixed(4),
-    lastLeak,
-  });
-  await redis.expire(key, 60);
-  return allowed;
+  const allowed = await redis.eval(
+    leakyBucketLua,
+    1,
+    key,
+    now,
+    rate,
+    capacity,
+    1, // consume 1
+    60 // ttl
+  );
+  return allowed === 1;
 }
+
 module.exports = { leakyBucket };

@@ -1,17 +1,24 @@
 const redis = require("../../config/redisClient");
+const fs = require("fs");
+const path = require("path");
+
+// load Lua script once at startup
+const luaPath = path.join(__dirname, "slidingWindowCounter.lua");
+const slidingWindowCounterLua = fs.readFileSync(luaPath, "utf8");
+
 async function slidingWindowCounter(key, limit, windowSize) {
-  const now = Math.floor(Date.now() / 1000);
-  const currWindow = Math.floor(now / windowSize);
-  const prevWindow = currWindow - 1;
-  const currKey = `${key}:${currWindow}`;
-  const prevKey = `${key}:${prevWindow}`;
-  const currCount = parseInt(await redis.get(currKey)) || 0;
-  const prevCount = parseInt(await redis.get(prevKey)) || 0;
-  const elapsed = now - currWindow * windowSize;
-  const weight = 1 - elapsed / windowSize;
-  const total = currCount + prevCount * weight;
-  await redis.incr(currKey);
-  await redis.expire(currKey, windowSize * 2);
-  return total <= limit;
+  const now = Date.now();
+  const ttl = windowSize * 2;
+  const allowed = await redis.eval(
+    slidingWindowCounterLua,
+    1,
+    key,
+    now,
+    limit,
+    windowSize,
+    ttl
+  );
+  return allowed === 1;
 }
+
 module.exports = { slidingWindowCounter };
