@@ -1,4 +1,4 @@
-# Advanced Node.js Rate Limiter (Redis, Express, Multiple Algorithms)
+# Node.js Rate Limiter (Redis, Express, Multiple Algorithms)
 
 ## Features
 
